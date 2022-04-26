@@ -1,7 +1,7 @@
 import unittest
 from logigs import get_number_from_index, get_empty_list, \
     get_index_from_number, is_zero_in_mas, move_left, move_up, move_down,\
-    can_move,
+    can_move
 
 
 class Test_2048(unittest.TestCase):
@@ -94,7 +94,7 @@ class Test_2048(unittest.TestCase):
             [0, 0, 0, 0],
             [0, 0, 0, 0],
         ]
-        self.assertEqual(move_left(mas), rez)
+        self.assertEqual(move_left(mas), (rez, 12))
 
     #
     def test_13(self):
@@ -111,7 +111,7 @@ class Test_2048(unittest.TestCase):
             [16, 8, 0, 0],
         ]
 
-        self.assertEqual(move_left(mas), rez)
+        self.assertEqual(move_left(mas), (rez, 32))
 
     def test_14(self):
         mas = [
@@ -127,7 +127,7 @@ class Test_2048(unittest.TestCase):
             [0, 0, 0, 0],
         ]
 
-        self.assertEqual(move_up(mas), rez)
+        self.assertEqual(move_up(mas), (rez, 24))
 
     def test_15(self):
         mas = [
@@ -143,7 +143,7 @@ class Test_2048(unittest.TestCase):
             [8, 8, 4, 4],
         ]
 
-        self.assertEqual(move_down(mas), rez)
+        self.assertEqual(move_down(mas), (rez, 24))
 
     def test_16(self):
         mas = [
@@ -152,7 +152,6 @@ class Test_2048(unittest.TestCase):
             [4, 0, 2, 4],
             [4, 4, 0, 0],
         ]
-
 
         self.assertEqual(can_move(mas), True)
 
@@ -163,6 +162,5 @@ class Test_2048(unittest.TestCase):
             [8, 15, 45, 18],
             [4, 56, 23, 67],
         ]
-
 
         self.assertEqual(can_move(mas), False)

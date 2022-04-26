@@ -52,6 +52,7 @@ def move_left(mas):
     # Данная функция будет сдвигать числа влево. Нам нужно пройтись по каждому
     # ряду массива. В ряду 2 0 0 4. 4- смещается а нули удаляются. Поэтому
     # образуется 2,4. Нам нужно после них добавить 0 до четырёх.
+    delta = 0
     for row in mas:
         while 0 in row:
             row.remove(0)
@@ -64,12 +65,14 @@ def move_left(mas):
             # А соседа удаляем. В этот ряд в конец лобавляем ноль.
             if mas[i][j] == mas[i][j + 1] and mas[i][j] != 0:
                 mas[i][j] *= 2
+                delta += mas[i][j]
                 mas[i].pop(j + 1)
                 mas[i].append(0)
-    return mas
+    return mas, delta
 
 
 def move_right(mas):
+    delta = 0
     for row in mas:
         while 0 in row:
             row.remove(0)
@@ -79,12 +82,14 @@ def move_right(mas):
         for j in range(3, 0, -1):  # столбец
             if mas[i][j] == mas[i][j - 1] and mas[i][j] != 0:
                 mas[i][j] *= 2
+                delta += mas[i][j]
                 mas[i].pop(j - 1)
                 mas[i].insert(0, 0)
-    return mas
+    return mas, delta
 
 
 def move_up(mas):
+    delta = 0
     for j in range(4):
         column = []
         for i in range(4):
@@ -95,14 +100,16 @@ def move_up(mas):
         for i in range(3):
             if column[i] == column[i + 1] and column[i] != 0:
                 column[i] *= 2
+                delta += column[i]
                 column.pop(i + 1)
                 column.append(0)
         for i in range(4):
             mas[i][j] = column[i]
-    return mas
+    return mas, delta
 
 
 def move_down(mas):
+    delta = 0
     for j in range(4):
         column = []
         for i in range(4):
@@ -113,11 +120,12 @@ def move_down(mas):
         for i in range(3, 0, -1):
             if column[i] == column[i - 1] and column[i] != 0:
                 column[i] *= 2
+                delta += column[i]
                 column.pop(i - 1)
                 column.insert(0, 0)
         for i in range(4):
             mas[i][j] = column[i]
-    return mas
+    return mas, delta
 
 
 def can_move(mas):
