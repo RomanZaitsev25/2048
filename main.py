@@ -9,6 +9,23 @@
 import pygame
 from logigs import *
 import sys
+from database import get_best, cur
+
+GAMERS_DB = get_best()  # содержится коллекция и её нужно обойти с пом for
+
+
+def draw_top_gamers():
+    font_top = pygame.font.SysFont('simsum', 30)  # Главная запись
+    font_gamer = pygame.font.SysFont('simsum', 24)  # размер отрисовки играков
+    text_head = font_top.render('Best tries:', True, COLOR_TEXT)
+    screen.blit(text_head, (280, 5))
+    for index, gamer in enumerate(GAMERS_DB):
+        name, score = gamer
+        # создать динамический тест
+        s = '{}. {} - {} '.format(index + 1, name, score)
+        text_gamer = font_gamer.render(s, True, COLOR_TEXT)
+        screen.blit(text_gamer, (280, 30 + 30 * index))
+        print(index, name, score)
 
 
 def draw_interface(score, delta=0):
@@ -25,11 +42,12 @@ def draw_interface(score, delta=0):
     text_score_value = font_score.render('{}'.format(score), True, COLOR_TEXT)
     screen.blit(text_score, (20, 35))
     screen.blit(text_score_value, (175, 35))
-    if delta>0:
+    if delta > 0:
         text_delta = font_delta.render('{}+'.format(delta), True, COLOR_TEXT)
         screen.blit(text_delta, (170, 65))
 
-    pretty_print(mas)
+    pretty_print(mas)  # отрисовка квадратов
+    draw_top_gamers()
     for row in range(BLOCKS):
         for column in range(BLOCKS):
             value = mas[row][column]
@@ -77,7 +95,7 @@ WIDTH = BLOCKS * SIZE_BLOCK + (BLOCKS + 1) * MARGIN
 HEIGHT = WIDTH + 110
 TITLE_REC = pygame.Rect(0, 0, WIDTH, 110)  # кординаты
 score = 0
-
+USERNAME = None
 mas[1][2] = 2
 mas[3][0] = 4
 
@@ -85,13 +103,88 @@ print(get_empty_list(mas))
 # get_empty_list(mas)
 pretty_print(mas)
 
+# выведем значение лучших игроков
+# for gamer in get_best():
+#     print(gamer)
+
+
 pygame.init()
 screen = pygame.display.set_mode((WIDTH, HEIGHT))
 pygame.display.set_caption('2048')
+
+
+def draw_intro():
+    #  Отображает картинку 2048, на нашей заставке. Загржаем картинку.
+    img2048 = pygame.image.load('2048_new.jpg')
+    font = pygame.font.SysFont('stxingkai', 70)
+    text_welcome = font.render('Welcome!', True, WHITE)
+    # Выводит значение текста
+    name = 'Enter the name'
+    is_find_name = False
+
+    while not is_find_name:
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                pygame.quit()
+                sys.exit(0)
+            elif event.type == pygame.KEYDOWN:
+                if event.unicode.isalpha():
+                    if name == 'Enter the name':
+                        name = event.unicode
+                    else:
+                        name += event.unicode
+                elif event.key == pygame.K_BACKSPACE:
+                    name = name[:-1]
+                elif event.key == pygame.K_RETURN:
+                    if len(name)> 2:
+                        global USERNAME
+                        USERNAME = name
+                        is_find_name = True
+                        break
+
+        screen.fill(BLACK)
+        text_name = font.render(name, True, WHITE)
+        # Место расположения name, при помощи get_rect
+        rect_name = text_name.get_rect()
+        # Расположение по центру, вызывая атрибут center. и подменить его
+        # кординатами нашего экрана
+        rect_name.center = screen.get_rect().center
+        # Уменьшает размер картинки.(Scale).
+        screen.blit(pygame.transform.scale(img2048, [200, 200]), [10, 10])
+        screen.blit(text_welcome, (230, 80))
+        screen.blit(text_name, rect_name) # Выводит текст на экран
+        pygame.display.update()
+    screen.fill(BLACK)
+
+
+def draw_game_over():
+    img2048 = pygame.image.load('2048_new.jpg')
+    font = pygame.font.SysFont('stxingkai', 65)
+    text_game_over = font.render('Game over!', True, WHITE)
+    text_score = font.render('Вы набрали {}'.format(score), True, WHITE)
+    best_score = GAMERS_DB[0][1]
+    if score > best_score:
+        text = 'Рекорд побит:'
+    else:
+        text = 'Рекорд не побит: {}'.format(best_score)
+    text_record = font.render(text, True, WHITE)
+    while True:
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                pygame.quit()
+                sys.exit(0)
+        screen.fill(BLACK)
+        screen.blit(text_game_over, (220, 80))
+        screen.blit(text_score, (30, 250))
+        screen.blit(text_record, (30, 300))
+        screen.blit(pygame.transform.scale(img2048, [200, 200]), [10, 10])
+        pygame.display.update()
+draw_intro()
+
 draw_interface(score)
 pygame.display.update()
 
-while is_zero_in_mas(mas) or can_move(mas): # цикл обработка событий
+while is_zero_in_mas(mas) or can_move(mas):  # цикл обработка событий
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             pygame.quit()
@@ -107,13 +200,18 @@ while is_zero_in_mas(mas) or can_move(mas): # цикл обработка соб
             elif event.key == pygame.K_DOWN:
                 mas, delta = move_down(mas)
             score += delta
-            empty = get_empty_list(
-                mas)  # свормир.list nu, которые не заполнены
-            random.shuffle(empty)
-            random_num = empty.pop()  # достаём рандомно элементы из матрицы
-            x, y = get_index_from_number(
-                random_num)  # нАМ НУЖНО ОПРЕДЕЛИТЬ ИНДЕКС РАНДОМНЫХ ЧИСЕЛ
-            mas = insert_2_or_4(mas, x, y)
-            print('Мы заполнили элемент под номером {}'.format(random_num))
+            if is_zero_in_mas(mas):
+                # свормир.list nu, которые не заполнены
+                empty = get_empty_list(mas)
+                random.shuffle(empty)
+                # достаём рандомно элементы из матрицы
+                random_num = empty.pop()
+                # нАМ НУЖНО ОПРЕДЕЛИТЬ ИНДЕКС РАНДОМНЫХ ЧИСЕЛ
+                x, y = get_index_from_number(random_num)
+                mas = insert_2_or_4(mas, x, y)
+                print('Мы заполнили элемент под номером {}'.format(random_num))
             draw_interface(score, delta)
             pygame.display.update()
+    print(USERNAME)
+
+draw_game_over()
