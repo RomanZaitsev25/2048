@@ -10,6 +10,8 @@ import pygame
 from logigs import *
 import sys
 from database import get_best, cur, insert_result
+import json
+import os
 
 GAMERS_DB = get_best()  # содержится коллекция и её нужно обойти с пом for
 
@@ -114,16 +116,27 @@ def init_const():
 
 mas = None
 score = None
-init_const()
 USERNAME = None
 
-print(get_empty_list(mas))
-# get_empty_list(mas)
-pretty_print(mas)
+# показывает путь к файлу
+path = os.getcwd()
+# показывает список файлов в папке
+if 'data.txt' in os.listdir():
+    with open('data.txt') as file:
+        # json- прочитает наш список и преобразет в словарь при помощи load
+        data = json.load(file)
+        mas = data['mas']
+        score = data['score']
+        USERNAME = data['user']
+    # Определим полный путь к файлу
+    full_path = os.path.join(path, 'data.txt')
+    os.remove(full_path)
+else:
+    init_const()
 
-# выведем значение лучших игроков
-# for gamer in get_best():
-#     print(gamer)
+
+print(get_empty_list(mas))
+pretty_print(mas)
 
 
 pygame.init()
@@ -224,6 +237,22 @@ draw_intro()
 draw_interface(score)
 pygame.display.update()
 
+# Мы можем сохранить данный и продолжить позже играть. Для Этого создаём
+# функцию, в нём словарь. Всё это сохраним в файлике. В качестве псевдонима
+# напишем outfile. Наш файлик запишем в json объекта- это формат обменной
+# информации. Наш файлик data, хотим сох в outfile при помощи dump(что
+# сохраняем и куда сохраняем).
+
+
+def save_game():
+    data = {
+        'user': USERNAME,
+        'score': score,
+        'mas': mas
+    }
+    with open('data.txt', 'w') as outfile:
+        json.dump(data, outfile)
+
 
 def game_loop():
     global score, mas
@@ -233,6 +262,7 @@ def game_loop():
     while is_zero_in_mas(mas) or can_move(mas):  # цикл обработка событий
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
+                save_game()
                 pygame.quit()
                 sys.exit(0)
             elif event.type == pygame.KEYDOWN:
