@@ -176,7 +176,7 @@ def draw_intro():
 
 
 def draw_game_over():
-    global USERNAME, mas, score
+    global USERNAME, mas, score, GAMERS_DB
     img2048 = pygame.image.load('2048_new.jpg')
     font = pygame.font.SysFont('stxingkai', 65)
     text_game_over = font.render('Game over!', True, WHITE)
@@ -188,6 +188,9 @@ def draw_game_over():
         text = 'Рекорд игры: {}'.format(best_score)
     text_record = font.render(text, True, WHITE)
     insert_result(USERNAME, score)
+    # В нем храниться список лучших результатов. Вновь должны обновить запрос
+    # к базе данных.
+    GAMERS_DB = get_best()
     make_desicion = False
     while not make_desicion:
         for event in pygame.event.get():
@@ -220,42 +223,13 @@ draw_intro()
 
 draw_interface(score)
 pygame.display.update()
-while is_zero_in_mas(mas) or can_move(mas):  # цикл обработка событий
-    for event in pygame.event.get():
-        if event.type == pygame.QUIT:
-            pygame.quit()
-            sys.exit(0)
-        elif event.type == pygame.KEYDOWN:
-            delta = 0
-            if event.key == pygame.K_LEFT:
-                mas, delta = move_left(mas)
-            elif event.key == pygame.K_RIGHT:
-                mas, delta = move_right(mas)
-            elif event.key == pygame.K_UP:
-                mas, delta = move_up(mas)
-            elif event.key == pygame.K_DOWN:
-                mas, delta = move_down(mas)
-            score += delta
-            if is_zero_in_mas(mas):
-                # свормир.list nu, которые не заполнены
-                empty = get_empty_list(mas)
-                random.shuffle(empty)
-                # достаём рандомно элементы из матрицы
-                random_num = empty.pop()
-                # нАМ НУЖНО ОПРЕДЕЛИТЬ ИНДЕКС РАНДОМНЫХ ЧИСЕЛ
-                x, y = get_index_from_number(random_num)
-                mas = insert_2_or_4(mas, x, y)
-                print('Мы заполнили элемент под номером {}'.format(random_num))
-            draw_interface(score, delta)
-            pygame.display.update()
-    print(USERNAME)
 
 
 def game_loop():
     global score, mas
     draw_interface(score)
     pygame.display.update()
-    is_btn_click = False
+    is_mas_move = False
     while is_zero_in_mas(mas) or can_move(mas):  # цикл обработка событий
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
@@ -264,19 +238,15 @@ def game_loop():
             elif event.type == pygame.KEYDOWN:
                 delta = 0
                 if event.key == pygame.K_LEFT:
-                    mas, delta = move_left(mas)
-                    is_btn_click = True
+                    mas, delta, is_mas_move = move_left(mas)
                 elif event.key == pygame.K_RIGHT:
-                    mas, delta = move_right(mas)
-                    is_btn_click = True
+                    mas, delta, is_mas_move = move_right(mas)
                 elif event.key == pygame.K_UP:
-                    mas, delta = move_up(mas)
-                    is_btn_click = True
+                    mas, delta, is_mas_move = move_up(mas)
                 elif event.key == pygame.K_DOWN:
-                    mas, delta = move_down(mas)
-                    is_btn_click = True
+                    mas, delta, is_mas_move = move_down(mas)
                 score += delta
-                if is_zero_in_mas(mas) and is_btn_click:
+                if is_zero_in_mas(mas) and is_mas_move:
                     # свормир.list nu, которые не заполнены
                     empty = get_empty_list(mas)
                     random.shuffle(empty)
@@ -286,7 +256,7 @@ def game_loop():
                     x, y = get_index_from_number(random_num)
                     mas = insert_2_or_4(mas, x, y)
                     print(f'Мы заполняем элемент под номером{random_num}')
-                    is_btn_click = False
+                    is_mas_move = False
 
                 draw_interface(score, delta)
                 pygame.display.update()
